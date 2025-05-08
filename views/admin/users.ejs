@@ -1,0 +1,801 @@
+ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management - BenixSpace</title>
+  <link rel="icon" href="/static/img/favicon.png" type="image/png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #6c757d;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <%- include('../partials/navbar') %>
+
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2>User Management</h2>
+          <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            <i class="fas fa-user-plus"></i> Add New User
+          </button>
+        </div>
+
+        <% if (success) { %>
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <%= success %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        <% } %>
+        
+        <% if (error) { %>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <%= error %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        <% } %>
+
+        <!-- User Stats -->
+        <div class="row mb-4">
+          <div class="col-md-3">
+            <div class="card bg-primary text-white">
+              <div class="card-body text-center">
+                <h3><%= stats.total_users %></h3>
+                <h6>Total Users</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-success text-white">
+              <div class="card-body text-center">
+                <h3><%= stats.regular_users %></h3>
+                <h6>Regular Users</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-warning text-white">
+              <div class="card-body text-center">
+                <h3><%= stats.premium_users %></h3>
+                <h6>Premium Users</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-danger text-white">
+              <div class="card-body text-center">
+                <h3><%= stats.admin_users %></h3>
+                <h6>Admins</h6>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Options -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4">
+                <label class="form-label">Filter by Role:</label>
+                <select id="roleFilter" class="form-select">
+                  <option value="all">All Roles</option>
+                  <option value="user">Users</option>
+                  <option value="admin">Admins</option>
+                  <option value="merchant">Merchants</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Sort By:</label>
+                <select id="sortBy" class="form-select">
+                  <option value="created_at">Join Date</option>
+                  <option value="username">Username</option>
+                  <option value="wallet">Wallet Balance</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Search:</label>
+                <input type="text" id="userSearch" class="form-control" placeholder="Search by username or email">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users List Card -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white d-flex justify-content-between">
+            <h5 class="mb-0">Users List</h5>
+            <span class="badge bg-primary"><%= users.length %> users</span>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover" id="users-table">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Wallet</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (users && users.length > 0) { %>
+                    <% users.forEach(user => { %>
+                      <tr class="user-row" data-role="<%= user.role %>">
+                        <td>
+                          <div class="d-flex align-items-center">
+                            <div class="user-avatar"><%= user.username.charAt(0).toUpperCase() %></div>
+                            <div>
+                              <strong><%= user.username %></strong><br>
+                              <small class="text-muted"><%= user.email %></small>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span class="badge bg-<%= 
+                            user.role === 'admin' ? 'danger' : 
+                            user.role === 'merchant' ? 'primary' : 'info' %>">
+                            <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %>
+                          </span>
+                        </td>
+                        <td>
+                          <span class="badge bg-<%= user.has_lifetime_commission ? 'success' : 'secondary' %>">
+                            <%= user.has_lifetime_commission ? 'Premium' : 'Standard' %>
+                          </span>
+                        </td>
+                        <td><%= new Date(user.created_at).toLocaleDateString() %></td>
+                        <td>$<%= parseFloat(user.wallet || 0).toFixed(2) %></td>
+                        <td>
+                          <div class="btn-group">
+                            <button class="btn btn-sm btn-info" onclick="openEditUserModal('<%= JSON.stringify(user).replace(/'/g, '\\\'').replace(/"/g, '&quot;') %>')" title="Edit User">
+                              <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning" onclick="openSetPasswordModal(<%= user.id %>, '<%= user.username %>')" title="Set Password">
+                              <i class="fas fa-key"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="togglePremium(<%= user.id %>, <%= user.has_lifetime_commission ? 'true' : 'false' %>)">
+                              <i class="fas fa-<%= user.has_lifetime_commission ? 'arrow-down' : 'arrow-up' %>"></i>
+                            </button>
+                            <% if (user.id != locals.user.id) { %>
+                              <button class="btn btn-sm btn-danger" onclick="deleteUser(<%= user.id %>)">
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            <% } %>
+                          </div>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="6" class="text-center">No users found</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Registrations -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">Recent User Registrations</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (recentRegistrations && recentRegistrations.length > 0) { %>
+                    <% recentRegistrations.forEach(user => { %>
+                      <tr>
+                        <td><%= new Date(user.created_at).toLocaleString() %></td>
+                        <td><%= user.username %></td>
+                        <td><%= user.email %></td>
+                        <td>
+                          <span class="badge bg-<%= user.has_lifetime_commission ? 'success' : 'secondary' %>">
+                            <%= user.has_lifetime_commission ? 'Premium' : 'Standard' %>
+                          </span>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="4" class="text-center">No recent registrations</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Set Password Modal -->
+  <div class="modal fade" id="setPasswordModal" tabindex="-1" aria-labelledby="setPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="setPasswordModalLabel">Set User Password</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="passwordAlert" class="alert d-none"></div>
+          
+          <form id="setPasswordForm">
+            <input type="hidden" id="passwordUserId" name="userId">
+            <input type="hidden" id="passwordUsername" name="username">
+            
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <div class="input-group">
+                <input type="password" id="newUserPassword" class="form-control" required>
+                <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+              <div class="form-text">
+                Password must be at least 8 characters and include both letters and numbers.
+              </div>
+            </div>
+            
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="generatePassword">
+              <label class="form-check-label" for="generatePassword">
+                Generate a strong password
+              </label>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="savePasswordBtn">Set Password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit User Modal -->
+  <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="editUserAlert" class="alert d-none"></div>
+          
+          <form id="editUserForm">
+            <input type="hidden" id="editUserId">
+            
+            <div class="mb-3">
+              <label class="form-label">Username</label>
+              <input type="text" id="editUsername" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" id="editEmail" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Role</label>
+              <select id="editRole" class="form-select">
+                <option value="user">User</option>
+                <option value="merchant">Merchant</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Wallet Balance ($)</label>
+              <input type="number" id="editWallet" class="form-control" min="0" step="0.01">
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Premium Status</label>
+              <select id="editPremium" class="form-select">
+                <option value="0">Standard</option>
+                <option value="1">Premium</option>
+              </select>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Notes</label>
+              <textarea id="editNotes" class="form-control" rows="3"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveEditBtn">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create User Modal -->
+  <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createUserModalLabel">Create New User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="createUserAlert" class="alert d-none"></div>
+          
+          <form id="createUserForm">
+            <div class="mb-3">
+              <label class="form-label">Username</label>
+              <input type="text" class="form-control" id="newUsername" name="username" required>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" id="newEmail" name="email" required>
+            </div>
+            
+            <div class="mb-3">
+              <label for="role" class="form-label">Role</label>
+              <select id="newRole" class="form-select" name="role" required>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="merchant">Merchant</option>
+              </select>
+            </div>
+            
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="newPassword" name="password" required minlength="8">
+                <button class="btn btn-outline-secondary" type="button" id="toggleCreatePassword">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+              <div class="form-text">Must be at least 8 characters with letters and numbers.</div>
+            </div>
+            
+            <div class="password-requirements mb-3">
+              <ul class="text-muted small ps-3">
+                <li id="createLengthCheck">At least 8 characters long</li>
+                <li id="createLetterCheck">Includes at least one letter</li>
+                <li id="createNumberCheck">Includes at least one number</li>
+              </ul>
+            </div>
+            
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="generateCreatePassword">
+                <label class="form-check-label" for="generateCreatePassword">
+                  Generate secure password automatically
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveUserBtn">Create User</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function togglePremium(userId, currentStatus) {
+      const action = currentStatus ? 'remove premium status from' : 'upgrade';
+      if (confirm(`Are you sure you want to ${action} this user?`)) {
+        fetch(`/admin/users/${userId}/toggle-premium`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('User status updated successfully');
+            location.reload();
+          } else {
+            alert('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while processing your request');
+        });
+      }
+    }
+    
+    function deleteUser(userId) {
+      if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        fetch(`/admin/users/${userId}/delete`, {
+          method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('User deleted successfully');
+            location.reload();
+          } else {
+            alert('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while processing your request');
+        });
+      }
+    }
+
+    function openSetPasswordModal(userId, username) {
+      // Set the username in the modal
+      document.getElementById('passwordUsername').value = username;
+      document.getElementById('passwordUserId').value = userId;
+
+      // Reset the form and alert
+      const form = document.getElementById('setPasswordForm');
+      form.reset();
+      document.getElementById('passwordAlert').classList.add('d-none');
+
+      // Show the modal
+      const modal = new bootstrap.Modal(document.getElementById('setPasswordModal'));
+      modal.show();
+    }
+
+    document.getElementById('savePasswordBtn').addEventListener('click', function() {
+      const form = document.getElementById('setPasswordForm');
+      const userId = document.getElementById('passwordUserId').value;
+      const newPassword = document.getElementById('newUserPassword').value;
+      const generatePassword = document.getElementById('generatePassword').checked;
+
+      // Validate password requirements
+      if (!validatePassword(newPassword)) {
+        return;
+      }
+
+      // Show loading state
+      this.innerHTML = 'Setting Password...';
+      this.classList.add('disabled');
+
+      fetch(`/admin/users/${userId}/set-password`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ new_password: newPassword, generate: generatePassword })
+})
+      .then(response => response.json())
+      .then(data => {
+        // Hide loading state
+        document.getElementById('savePasswordBtn').innerHTML = 'Set Password';
+        document.getElementById('savePasswordBtn').classList.remove('disabled');
+
+        if (data.success) {
+          // Show success message
+          const alert = document.getElementById('passwordAlert');
+          alert.classList.remove('d-none', 'alert-danger');
+          alert.classList.add('alert-success');
+          alert.innerHTML = 'Password set successfully';
+
+          // Optionally, reload the page or update the UI
+          setTimeout(() => {
+            location.reload();
+          }, 1500);
+        } else {
+          // Show error message
+          const alert = document.getElementById('passwordAlert');
+          alert.classList.remove('d-none', 'alert-success');
+          alert.classList.add('alert-danger');
+          alert.innerHTML = 'Error: ' + data.message;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while processing your request');
+      });
+    });
+
+    function validatePassword(password) {
+      // Check for potential null elements before checking 
+      if (!password || password.length < 8) {
+        alert('Password must be at least 8 characters long');
+        return false;
+      }
+      
+      const hasLetter = /[a-zA-Z]/.test(password);
+      const hasNumber = /[0-9]/.test(password);
+      
+      if (!hasLetter || !hasNumber) {
+        alert('Password must contain both letters and numbers');
+        return false;
+      }
+      
+      return true;
+    }
+
+    document.getElementById('togglePasswordBtn').addEventListener('click', function() {
+      const passwordField = document.getElementById('newUserPassword');
+      const passwordType = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordField.setAttribute('type', passwordType);
+      this.querySelector('i').classList.toggle('fa-eye-slash');
+    });
+
+    document.getElementById('generatePassword').addEventListener('change', function() {
+      const passwordField = document.getElementById('newUserPassword');
+      if (this.checked) {
+        // Generate a secure password
+        const securePassword = generateSecurePassword(12);
+        passwordField.value = securePassword;
+      } else {
+        passwordField.value = '';
+      }
+    });
+
+    function generateSecurePassword(length) {
+      const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+[]{}|;:,.<>?";
+      let password = "";
+      for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * charset.length);
+        password += charset[randomIndex];
+      }
+      return password;
+    }
+
+    // Create User functionality
+    document.getElementById('saveUserBtn').addEventListener('click', function() {
+      const form = document.getElementById('createUserForm');
+      const username = document.getElementById('newUsername').value;
+      const email = document.getElementById('newEmail').value;
+      const role = document.getElementById('newRole').value;
+      const password = document.getElementById('newPassword').value;
+      const generatePassword = document.getElementById('generateCreatePassword').checked;
+
+      // Validate password requirements
+      if (!validatePassword(password)) {
+        return;
+      }
+
+      // Show loading state
+      this.innerHTML = 'Creating User...';
+      this.classList.add('disabled');
+
+      fetch('/admin/users/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, email, role, password, generate: generatePassword })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Hide loading state
+        document.getElementById('saveUserBtn').innerHTML = 'Create User';
+        document.getElementById('saveUserBtn').classList.remove('disabled');
+
+        if (data.success) {
+          // Show success message
+          const alert = document.getElementById('createUserAlert');
+          alert.classList.remove('d-none', 'alert-danger');
+          alert.classList.add('alert-success');
+          alert.innerHTML = 'User created successfully';
+
+          // Optionally, reload the page or update the UI
+          setTimeout(() => {
+            location.reload();
+          }, 1500);
+        } else {
+          // Show error message
+          const alert = document.getElementById('createUserAlert');
+          alert.classList.remove('d-none', 'alert-success');
+          alert.classList.add('alert-danger');
+          alert.innerHTML = 'Error: ' + data.message;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while processing your request');
+      });
+    });
+
+    // Edit User Modal Functionality
+    function openEditUserModal(userJSON) {
+      const user = JSON.parse(userJSON.replace(/&quot;/g, '"'));
+      
+      // Set form values
+      document.getElementById('editUserId').value = user.id;
+      document.getElementById('editUsername').value = user.username;
+      document.getElementById('editEmail').value = user.email;
+      document.getElementById('editRole').value = user.role;
+      document.getElementById('editWallet').value = parseFloat(user.wallet || 0).toFixed(2);
+      document.getElementById('editPremium').value = user.has_lifetime_commission ? "1" : "0";
+      document.getElementById('editNotes').value = user.notes || '';
+      
+      // Reset alert
+      document.getElementById('editUserAlert').classList.add('d-none');
+      
+      // Show modal
+      const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+      modal.show();
+    }
+    
+    document.getElementById('saveEditBtn').addEventListener('click', function() {
+      // Get form values
+      const userId = document.getElementById('editUserId').value;
+      const username = document.getElementById('editUsername').value;
+      const email = document.getElementById('editEmail').value;
+      const role = document.getElementById('editRole').value;
+      const wallet = document.getElementById('editWallet').value;
+      const premium = document.getElementById('editPremium').value === "1";
+      const notes = document.getElementById('editNotes').value;
+      
+      // Show loading state
+      this.innerHTML = 'Saving...';
+      this.classList.add('disabled');
+      
+      fetch(`/admin/users/${userId}/update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          username, 
+          email, 
+          role, 
+          wallet, 
+          has_lifetime_commission: premium,
+          notes 
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Hide loading state
+        document.getElementById('saveEditBtn').innerHTML = 'Save Changes';
+        document.getElementById('saveEditBtn').classList.remove('disabled');
+        
+        if (data.success) {
+          // Show success message
+          const alert = document.getElementById('editUserAlert');
+          alert.classList.remove('d-none', 'alert-danger');
+          alert.classList.add('alert-success');
+          alert.innerHTML = 'User updated successfully';
+          
+          // Reload the page after a delay
+          setTimeout(() => {
+            location.reload();
+          }, 1500);
+        } else {
+          // Show error message
+          const alert = document.getElementById('editUserAlert');
+          alert.classList.remove('d-none', 'alert-success');
+          alert.classList.add('alert-danger');
+          alert.innerHTML = 'Error: ' + data.message;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while processing your request');
+        
+        document.getElementById('saveEditBtn').innerHTML = 'Save Changes';
+        document.getElementById('saveEditBtn').classList.remove('disabled');
+      });
+    });
+
+    // Filter and sort functionality
+    document.getElementById('roleFilter').addEventListener('change', function() {
+      const selectedRole = this.value;
+      const rows = document.querySelectorAll('.user-row');
+
+      rows.forEach(row => {
+        const rowRole = row.getAttribute('data-role');
+        if (selectedRole === 'all' || rowRole === selectedRole) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+    document.getElementById('sortBy').addEventListener('change', function() {
+      const sortBy = this.value;
+      const table = document.getElementById('users-table');
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+      rows.sort((a, b) => {
+        let aValue, bValue;
+
+        switch (sortBy) {
+          case 'username':
+            aValue = a.querySelector('td:nth-child(1) strong').innerText;
+            bValue = b.querySelector('td:nth-child(1) strong').innerText;
+            break;
+          case 'wallet':
+            aValue = parseFloat(a.querySelector('td:nth-child(5)').innerText.replace('$', ''));
+            bValue = parseFloat(b.querySelector('td:nth-child(5)').innerText.replace('$', ''));
+            break;
+          default:
+            aValue = new Date(a.querySelector('td:nth-child(4)').innerText);
+            bValue = new Date(b.querySelector('td:nth-child(4)').innerText);
+        }
+
+        return aValue > bValue ? 1 : -1;
+      });
+
+      rows.forEach(row => table.querySelector('tbody').appendChild(row));
+    });
+
+    document.getElementById('userSearch').addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const rows = document.querySelectorAll('.user-row');
+
+      rows.forEach(row => {
+        const username = row.querySelector('td:nth-child(1) strong').innerText.toLowerCase();
+        const email = row.querySelector('td:nth-child(1) small').innerText.toLowerCase();
+
+        if (username.includes(searchTerm) || email.includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+    // Toggle password visibility for create user form
+    document.getElementById('toggleCreatePassword').addEventListener('click', function() {
+      const passwordField = document.getElementById('newPassword');
+      const passwordType = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordField.setAttribute('type', passwordType);
+      this.querySelector('i').classList.toggle('fa-eye-slash');
+    });
+
+    // Generate password for create user form
+    document.getElementById('generateCreatePassword').addEventListener('change', function() {
+      const passwordField = document.getElementById('newPassword');
+      if (this.checked) {
+        // Generate a secure password
+        const securePassword = generateSecurePassword(12);
+        passwordField.value = securePassword;
+        
+        // Update validation indicators
+        document.getElementById('createLengthCheck').classList.add('text-success');
+        document.getElementById('createLetterCheck').classList.add('text-success');
+        document.getElementById('createNumberCheck').classList.add('text-success');
+      } else {
+        passwordField.value = '';
+        // Reset validation indicators
+        document.getElementById('createLengthCheck').classList.remove('text-success');
+        document.getElementById('createLetterCheck').classList.remove('text-success');
+        document.getElementById('createNumberCheck').classList.remove('text-success');
+      }
+    });
+  </script>
+</body>
+</html>

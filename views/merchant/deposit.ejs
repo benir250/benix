@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" data-min-deposit="<%= minDeposit %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deposit Funds - BenixSpace</title>
+  <link rel="icon" href="/static/img/favicon.png" type="image/png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-light">
+  <%- include('../partials/navbar') %>
+
+  <div class="container mt-4">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h4 class="mb-0">Deposit Funds</h4>
+          </div>
+          <div class="card-body">
+            <% if (typeof message !== 'undefined' && message) { %>
+              <div class="alert alert-<%= message.type %> alert-dismissible fade show" role="alert">
+                <%= message.text %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            <% } %>
+            
+            <div class="mb-4">
+              <h5>Current Balance</h5>
+              <h2 class="text-primary">$<%= parseFloat(user.merchant_balance).toFixed(2) %></h2>
+            </div>
+
+            <form id="depositForm">
+              <div class="mb-3">
+                <label for="amount" class="form-label">Amount to Deposit</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" id="amount" name="amount" 
+                    min="<%= minDeposit %>" step="0.01" required>
+                </div>
+                <small class="text-muted">Minimum deposit amount: $<%= minDeposit %></small>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Select Payment Method</label>
+                <div class="d-grid gap-2">
+                  <button type="button" class="btn btn-success" id="umvaBtn">
+                    <i class="fas fa-wallet me-2"></i>Pay with Umva Pay
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary" id="manualBtn" data-bs-toggle="collapse" data-bs-target="#manualPaymentInfo">
+                    <i class="fas fa-university me-2"></i>Manual Bank Transfer
+                  </button>
+                </div>
+              </div>
+            </form>
+            
+            <!-- Manual Payment Information -->
+            <div class="collapse mt-3" id="manualPaymentInfo">
+              <div class="card card-body bg-light">
+                <h5>Bank Transfer Details</h5>
+                <% if (manualPayment.bankName && manualPayment.accountNumber) { %>
+                  <div class="mb-3">
+                    <p><strong>Instructions:</strong> <%= manualPayment.instructions %></p>
+                    <p><strong>Bank Name:</strong> <%= manualPayment.bankName %></p>
+                    <p><strong>Account Name:</strong> <%= manualPayment.accountName %></p>
+                    <p><strong>Account Number:</strong> <%= manualPayment.accountNumber %></p>
+                    <% if (manualPayment.swiftCode) { %>
+                      <p><strong>SWIFT/BIC Code:</strong> <%= manualPayment.swiftCode %></p>
+                    <% } %>
+                  </div>
+                  <p class="text-muted small">After making the transfer, please contact support with your proof of payment.</p>
+                <% } else { %>
+                  <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Manual payment details have not been configured by the administrator yet. Please use Umva Pay or contact support.
+                  </div>
+                <% } %>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-header">
+            <h5 class="mb-0">Recent Deposits</h5>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="transactionsTable">
+                <!-- Will be populated via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const minDepositAmount = parseFloat(document.documentElement.dataset.minDeposit);
+    
+    document.getElementById('depositForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+    });
+
+    document.getElementById('umvaBtn').addEventListener('click', function() {
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (amount < minDepositAmount) {
+        alert(`Minimum deposit amount is $${minDepositAmount}`);
+        return;
+      }
+
+      const data = {
+        public_key: "<%= umvapayPublicKey %>",
+        identifier: "deposit_" + Date.now(),
+        currency: "USD",
+        amount: amount,
+        details: "Deposit to merchant account",
+        ipn_url: window.location.origin + "/api/deposit/umva/ipn",
+        success_url: window.location.origin + "/merchant/deposit?success=true",
+        cancel_url: window.location.origin + "/merchant/deposit?cancelled=true",
+        site_logo: "<%= umvapayLogo %>",
+        customer_name: "<%= user.username %>",
+        customer_email: "<%= user.email %>"
+      };
+
+      fetch('<%= umvapayMode === "test" ? "https://pay.umva.net/sandbox/payment/initiate" : "https://pay.umva.net/payment/initiate" %>', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(response => {
+        if (response.success === "ok") {
+          window.location.href = response.url;
+        } else {
+          alert('Error: ' + response.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while initiating the transaction');
+      });
+    });
+
+    // Function to load recent transactions
+    function loadRecentTransactions() {
+      fetch('/api/transactions/recent?type=deposit')
+        .then(res => res.json())
+        .then(transactions => {
+          const tbody = document.getElementById('transactionsTable');
+          tbody.innerHTML = transactions.map(t => `
+            <tr>
+              <td>${new Date(t.created_at).toLocaleDateString()}</td>
+              <td>$${parseFloat(t.amount).toFixed(2)}</td>
+              <td>
+                <span class="badge ${
+                  t.status === 'completed' ? 'bg-success' :
+                  t.status === 'pending' ? 'bg-warning' :
+                  'bg-danger'
+                }">
+                  ${t.status}
+                </span>
+              </td>
+            </tr>
+          `).join('');
+        })
+        .catch(error => {
+          console.error('Error loading transactions:', error);
+        });
+    }
+
+    // Load transactions when page loads
+    loadRecentTransactions();
+  </script>
+</body>
+</html>

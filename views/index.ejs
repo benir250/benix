@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BenixSpace - Affiliate Platform</title>
+  <link rel="icon" href="/static/img/favicon.png" type="image/png" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Hero Section */
+    .hero-section {
+      background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                  url('https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=2000&q=80');
+      background-size: cover;
+      background-position: center;
+      padding: 150px 0;
+      color: white;
+      margin-bottom: 80px;
+    }
+
+    .hero-title {
+      font-size: 4rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .hero-subtitle {
+      font-size: 1.8rem;
+      opacity: 0.9;
+      margin-bottom: 40px;
+    }
+
+    /* Features Section */
+    .feature-card {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      height: 100%;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+
+    .feature-icon {
+      font-size: 3.5rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 25px;
+    }
+
+    /* Stats Section */
+    .stats-section {
+      background: linear-gradient(135deg, #2980b9, #2ecc71);
+      padding: 80px 0;
+      color: white;
+      border-radius: 0;
+      margin: 60px 0;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 30px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .stat-number {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: white;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Testimonials */
+    .testimonial-section {
+      background: #f8f9fa;
+      padding: 80px 0;
+    }
+
+    .testimonial-card {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      margin: 20px 0;
+      transition: transform 0.3s ease;
+    }
+
+    .testimonial-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .testimonial-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid var(--primary-color);
+    }
+
+    /* CTA Section */
+    .cta-section {
+      background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+                  url('https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=2000&q=80');
+      background-size: cover;
+      background-position: center;
+      padding: 100px 0;
+      color: white;
+      text-align: center;
+      border-radius: 0;
+    }
+
+    .btn-hero {
+      padding: 15px 40px;
+      font-size: 1.2rem;
+      border-radius: 50px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .btn-hero:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    /* Add more testimonials */
+    .testimonial-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      padding: 20px;
+    }
+    
+    /* Link cards */
+    .link-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .link-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    
+    .link-type-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+    }
+    
+    .card-img-top {
+      height: 200px;
+      object-fit: cover;
+    }
+    
+    .popular-tag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #ff6b6b;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <!-- Main Content -->
+  <div class="container-fluid p-0">
+    <% if (typeof user === 'undefined' || !user) { %>
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="container text-center">
+          <h1 class="hero-title">Welcome to BenixSpace</h1>
+          <p class="hero-subtitle">Transform Your Social Media Presence into Profit</p>
+          <div class="d-flex justify-content-center gap-3">
+            <a href="/register" class="btn btn-light btn-hero">Get Started</a>
+            <a href="/login" class="btn btn-outline-light btn-hero">Login</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section class="features-section">
+        <div class="container">
+          <h2 class="text-center mb-5">Why Choose BenixSpace?</h2>
+          <div class="row">
+            <div class="col-md-4 mb-4">
+              <div class="feature-card">
+                <i class="fas fa-money-bill-wave feature-icon"></i>
+                <h3>Earn Money</h3>
+                <p>Turn your social media influence into real income with our affiliate program</p>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="feature-card">
+                <i class="fas fa-link feature-icon"></i>
+                <h3>Easy Sharing</h3>
+                <p>Share products and content with just one click across all platforms</p>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="feature-card">
+                <i class="fas fa-chart-line feature-icon"></i>
+                <h3>Track Progress</h3>
+                <p>Monitor your earnings and performance with detailed analytics</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats Section with Real Database Data -->
+      <section class="stats-section">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-4 mb-4">
+              <div class="stat-item">
+                <div class="stat-number"><%= stats.userCount || 0 %></div>
+                <div>Active Users</div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="stat-item">
+                <div class="stat-number">$<%= stats.totalEarnings ? parseFloat(stats.totalEarnings).toFixed(2) : '0.00' %></div>
+                <div>Paid to Affiliates</div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="stat-item">
+                <div class="stat-number"><%= stats.clickCount || 0 %></div>
+                <div>Total Clicks</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Featured Merchants Section -->
+      <section class="container my-5">
+        <h2 class="text-center mb-5">Featured Merchants</h2>
+        <div class="row">
+          <% if (merchants && merchants.length > 0) { %>
+            <% merchants.forEach(merchant => { %>
+              <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow">
+                  <div class="card-body text-center">
+                    <div class="display-4 mb-3">
+                      <div class="user-avatar d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white" style="width: 80px; height: 80px; font-size: 2rem;">
+                        <%= merchant.username.charAt(0).toUpperCase() %>
+                      </div>
+                    </div>
+                    <h5 class="card-title"><%= merchant.business_name || merchant.username %></h5>
+                    <p class="card-text">
+                      <% if (merchant.business_description && merchant.business_description.length > 100) { %>
+                        <%= merchant.business_description.substring(0, 100) %>...
+                      <% } else { %>
+                        <%= merchant.business_description || 'Trusted merchant on BenixSpace' %>
+                      <% } %>
+                    </p>
+                    <p class="text-muted">
+                      <small>
+                        <i class="fas fa-link me-1"></i> <%= merchant.product_count || 0 %> products
+                        <i class="fas fa-users ms-3 me-1"></i> Joined <%= new Date(merchant.created_at).toLocaleDateString() %>
+                      </small>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div class="col-12">
+              <div class="alert alert-info">No merchants available yet.</div>
+            </div>
+          <% } %>
+        </div>
+      </section>
+
+      <!-- Testimonials Section -->
+      <section class="testimonial-section">
+        <div class="container">
+          <h2 class="text-center mb-5">What Our Users Say</h2>
+          <div class="testimonial-grid">
+            <% if (testimonials && testimonials.length > 0) { %>
+              <% testimonials.forEach(testimonial => { %>
+                <div class="testimonial-card">
+                  <div class="d-flex align-items-center mb-4">
+                    <div class="user-avatar d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white me-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                      <%= testimonial.username.charAt(0).toUpperCase() %>
+                    </div>
+                    <div>
+                      <h5 class="mb-0"><%= testimonial.username %></h5>
+                      <small class="text-muted"><%= testimonial.role === 'merchant' ? 'Merchant' : 'Affiliate' %></small>
+                    </div>
+                  </div>
+                  <p class="mb-0">"<%= testimonial.testimonial %>"</p>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <div class="testimonial-card">
+                <div class="d-flex align-items-center mb-4">
+                  <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" class="testimonial-avatar me-3">
+                  <div>
+                    <h5 class="mb-0">John Doe</h5>
+                    <small class="text-muted">Social Media Influencer</small>
+                  </div>
+                </div>
+                <p class="mb-0">"BenixSpace has transformed how I monetize my social media presence. Easy to use and great earnings!"</p>
+              </div>
+
+              <div class="testimonial-card">
+                <div class="d-flex align-items-center mb-4">
+                  <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="testimonial-avatar me-3">
+                  <div>
+                    <h5 class="mb-0">Sarah Wilson</h5>
+                    <small class="text-muted">Content Creator</small>
+                  </div>
+                </div>
+                <p class="mb-0">"The platform is incredibly user-friendly and the support team is always helpful. I've earned more than expected!"</p>
+              </div>
+
+              <div class="testimonial-card">
+                <div class="d-flex align-items-center mb-4">
+                  <img src="https://randomuser.me/api/portraits/men/67.jpg" alt="User" class="testimonial-avatar me-3">
+                  <div>
+                    <h5 class="mb-0">Michael Chen</h5>
+                    <small class="text-muted">Digital Marketer</small>
+                  </div>
+                </div>
+                <p class="mb-0">"BenixSpace made it easy to manage my affiliate links and track performance. Highly recommended!"</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Us Section -->
+      <section class="cta-section">
+        <div class="container">
+          <h2 class="mb-4">More about us</h2>
+          <p class="mb-4">BenixSpace is a platform by NebeluRw a company based in Rwanda, Kigali.
+            NebeluRw aims at developing softwares that changes life. NebeluRw does various activies
+            including but not limited to web design, digital marketing, software development,
+          Music production and so on. 
+        BenixSpace is here to help people earn online by sharing links. Enjoy!
+        </p>
+          <a href="/register" class="btn btn-light btn-hero">Start Now</a>
+        </div>
+      </section>
+      
+      <!-- CTA Section -->
+      <section class="cta-section">
+        <div class="container">
+          <h2 class="mb-4">Ready to Start Earning?</h2>
+          <p class="mb-4">Join thousands of successful affiliates on BenixSpace</p>
+          <a href="/register" class="btn btn-light btn-hero">Start Now</a>
+        </div>
+      </section>
+    <% } else { %>
+      <!-- Show available links for logged in users -->
+      <div class="container mt-5">
+        <div class="row mb-4">
+          <div class="col-md-8">
+            <h2>Available Links</h2>
+            <p class="text-muted">Share these links to earn commission on every click</p>
+          </div>
+          <div class="col-md-4 text-md-end">
+            <% if (typeof stats !== 'undefined') { %>
+              <div class="border rounded p-3 text-center">
+                <h5 class="m-0">Platform Stats</h5>
+                <div class="d-flex justify-content-between mt-2">
+                  <div>
+                    <small class="d-block text-muted">Users</small>
+                    <span class="fw-bold"><%= stats.userCount || 0 %></span>
+                  </div>
+                  <div>
+                    <small class="d-block text-muted">Clicks</small>
+                    <span class="fw-bold"><%= stats.clickCount || 0 %></span>
+                  </div>
+                  <div>
+                    <small class="d-block text-muted">Links</small>
+                    <span class="fw-bold"><%= stats.linkCount || 0 %></span>
+                  </div>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        </div>
+        
+        <div class="row">
+          <% if (links && links.length > 0) { %>
+            <% links.forEach((link, index) => { %>
+              <div class="col-md-4 mb-4">
+                <div class="card link-card h-100">
+                  <% if (index < 3) { %>
+                    <div class="popular-tag">Popular</div>
+                  <% } %>
+                  <span class="link-type-badge badge <%= 
+                    link.type === 'product' ? 'bg-primary' : 
+                    link.type === 'youtube' ? 'bg-danger' : 
+                    'bg-info' %>">
+                    <%= link.type %>
+                  </span>
+                  <% if (link.image_url) { %>
+                    <img src="<%= link.image_url %>" class="card-img-top" alt="<%= link.title %>">
+                  <% } else { %>
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                      <i class="<%= 
+                        link.type === 'product' ? 'fas fa-shopping-bag' : 
+                        link.type === 'youtube' ? 'fab fa-youtube' : 
+                        'fas fa-link' %> fa-3x text-muted"></i>
+                    </div>
+                  <% } %>
+                  <div class="card-body">
+                    <h5 class="card-title"><%= link.title %></h5>
+                    <p class="card-text text-muted">
+                      <small><i class="fas fa-user-tie me-1"></i> <%= link.business_name || link.merchant_name %></small>
+                      <% if (link.click_target) { %>
+                        <small class="ms-2"><i class="fas fa-chart-line me-1"></i> <%= link.clicks_count || 0 %>/<%= link.click_target %> clicks</small>
+                      <% } %>
+                    </p>
+                    <p class="card-text">
+                      <% if (link.description && link.description.length > 80) { %>
+                        <%= link.description.substring(0, 80) %>...
+                      <% } else { %>
+                        <%= link.description || 'No description provided. Share this link to earn commission on every click.' %>
+                      <% } %>
+                    </p>
+                    <% if (link.price) { %>
+                      <p class="card-text fw-bold">Price: $<%= parseFloat(link.price).toFixed(2) %></p>
+                    <% } %>
+                  </div>
+                  <div class="card-footer">
+                    <a href="/links/<%= link.id %>/share" class="btn btn-primary w-100">
+                      <i class="fas fa-share-alt me-1"></i> Share & Earn
+                    </a>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div class="col-12">
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> No links available at the moment. Please check back later.
+              </div>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <%- include('partials/footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+  <script>
+    // Initialize clipboard.js
+    new ClipboardJS('.copy-btn');
+
+    // Show success message for clipboard
+    document.querySelectorAll('.copy-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => {
+          button.innerHTML = originalContent;
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>

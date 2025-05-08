@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Wallet - BenixSpace</title>
+  <link rel="icon" href="/favicon.png" type="image/x-icon" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-light">
+  <%- include('../partials/navbar') %>
+
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Wallet Amount</h5>
+          </div>
+          <div class="card-body">
+            <h2 class="mb-0">$<%= parseFloat(user.wallet).toFixed(4) %></h2>
+            <small class="text-muted">Available for withdrawal</small>
+
+            <hr>
+
+            <div class="d-grid gap-2">
+              <button type="button" class="btn btn-success" 
+                      data-bs-toggle="modal" data-bs-target="#withdrawModal"
+                      <%= parseFloat(user.wallet) < minPayout ? 'disabled' : '' %>>
+                <i class="fas fa-money-bill-wave me-2"></i>Withdraw Funds
+              </button>
+            </div>
+
+            <% if (parseFloat(user.wallet) < minPayout) { %>
+              <div class="alert alert-info mt-3 mb-0">
+                <small>
+                  <i class="fas fa-info-circle me-1"></i>
+                  Minimum withdrawal amount is $<%= minPayout %>
+                </small>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="card shadow-sm">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Total Earnings</h5>
+          </div>
+          <div class="card-body">
+            <h3 class="mb-0">$<%= parseFloat(user.earnings).toFixed(2) %></h3>
+            <small class="text-muted">Lifetime earnings</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Transaction History</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% transactions.forEach(transaction => { %>
+                    <tr>
+                      <td><%= new Date(transaction.created_at).toLocaleDateString() %></td>
+                      <td>
+                        <span class="badge <%= 
+                          transaction.type === 'commission' ? 'bg-success' : 
+                          'bg-primary' %>">
+                          <%= transaction.type %>
+                        </span>
+                      </td>
+                      <td>$<%= parseFloat(transaction.amount).toFixed(4) %></td>
+                      <td>
+                        <span class="badge <%= 
+                          transaction.status === 'completed' ? 'bg-success' :
+                          transaction.status === 'pending' ? 'bg-warning' :
+                          'bg-danger' %>">
+                          <%= transaction.status %>
+                        </span>
+                      </td>
+                      <td><small class="text-muted"><%= transaction.details || '-' %></small></td>
+                    </tr>
+                  <% }); %>
+                  <% if (transactions.length === 0) { %>
+                    <tr>
+                      <td colspan="5" class="text-center text-muted">
+                        No transactions yet
+                      </td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Withdraw Modal -->
+  <div class="modal fade" id="withdrawModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Withdraw Funds</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <% if (!user.account_number || !user.bank_code || !user.account_name) { %>
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              Please update your bank account details in your profile first.
+              <a href="/profile" class="alert-link">Go to Profile</a>
+            </div>
+          <% } else { %>
+            <form id="withdrawForm">
+              <div class="mb-3">
+                <label class="form-label">Amount to Withdraw</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" id="amount" name="amount" 
+                         min="<%= minPayout %>" max="<%= user.wallet %>" step="0.01" required>
+                </div>
+                <div class="form-text">
+                  Minimum: $<%= minPayout %>, Available: $<%= parseFloat(user.wallet).toFixed(4) %>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Withdrawal Method</label>
+                <div class="row">
+                  <div class="col-md-6 mb-2">
+                    <div class="form-check card">
+                      <div class="card-body">
+                        <input class="form-check-input" type="radio" name="gateway" 
+                               id="umvapay" value="Umva Pay" required>
+                        <label class="form-check-label w-100" for="umvapay">
+                          <img src="https://umva.net/images/logo.png" 
+                               alt="Umva Pay" class="img-fluid mb-2" style="height: 30px;">
+                          <div class="small text-muted">
+                            For Rwandan banks
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <div class="form-check card">
+                      <div class="card-body">
+                        <input class="form-check-input" type="radio" name="gateway" 
+                               id="manual" value="Manual" required>
+                        <label class="form-check-label w-100" for="manual">
+                          <i class="fas fa-money-bill-wave" style="font-size: 24px; color: #28a745;"></i>
+                          <div class="small text-muted mt-2">
+                            Manual bank transfer
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="manualPaymentInfo" class="alert alert-info d-none">
+                <i class="fas fa-info-circle me-2"></i>
+                <p><strong>Manual Withdrawal Information:</strong></p>
+                <p>Your withdrawal request will be processed manually by our team. Please ensure your bank details are correct before submitting.</p>
+                <p>Manual withdrawals usually take 1-3 business days to process.</p>
+              </div>
+
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <p class="mb-2">Your funds will be sent to:</p>
+                <div class="d-flex align-items-center mb-2">
+                  <i class="fas fa-university me-2 text-primary"></i>
+                  <strong>Bank:</strong> <span class="ms-2"><%= user.bank_code %></span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                  <i class="fas fa-credit-card me-2 text-primary"></i>
+                  <strong>Account:</strong> <span class="ms-2"><%= user.account_number %></span>
+                </div>
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-user me-2 text-primary"></i>
+                  <strong>Name:</strong> <span class="ms-2"><%= user.account_name %></span>
+                </div>
+              </div>
+              
+              <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <p class="mb-0"><strong>Note:</strong> Once your withdrawal request is approved, the funds will be sent to your bank account. All withdrawals are subject to review for security purposes.</p>
+              </div>
+            </form>
+          <% } %>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-success" id="confirmWithdrawBtn"
+                  <%= !user.account_number ? 'disabled' : '' %>>
+            <i class="fas fa-check me-2"></i>Confirm Withdrawal
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Toggle manual payment info when payment method changes
+    document.querySelectorAll('input[name="gateway"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const manualPaymentInfo = document.getElementById('manualPaymentInfo');
+        
+        if (this.value === 'Manual') {
+          manualPaymentInfo.classList.remove('d-none');
+        } else {
+          manualPaymentInfo.classList.add('d-none');
+        }
+      });
+    });
+
+    document.getElementById('confirmWithdrawBtn').addEventListener('click', async function() {
+      try {
+        const form = document.getElementById('withdrawForm');
+        const amount = document.getElementById('amount').value;
+        const gateway = document.querySelector('input[name="gateway"]:checked')?.value;
+
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        if (!gateway) {
+          alert('Please select a payment method');
+          return;
+        }
+
+        // For both manual and Umva Pay withdrawals, send JSON request
+        const endpoint = gateway === 'Manual' ? '/api/withdraw-manual' : '/api/withdraw';
+        
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            amount,
+            gateway
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const message = gateway === 'Manual' 
+            ? 'Withdrawal request submitted successfully. Your request will be reviewed by admin.'
+            : 'Withdrawal request submitted successfully';
+          
+          alert(message);
+          window.location.reload();
+        } else {
+          alert(data.message || 'Failed to submit withdrawal request');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      }
+    });
+
+    // Validate amount input
+    document.getElementById('amount')?.addEventListener('input', function() {
+      const min = parseFloat(this.min);
+      const max = parseFloat(this.max);
+      const value = parseFloat(this.value);
+
+      if (value < min) {
+        this.setCustomValidity(`Minimum withdrawal amount is $${min}`);
+      } else if (value > max) {
+        this.setCustomValidity('Amount exceeds available balance');
+      } else {
+        this.setCustomValidity('');
+      }
+    });
+  </script>
+</body>
+</html>

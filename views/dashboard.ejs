@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BenixSpace</title>
+    <link rel="icon" href="/static/img/favicon.png" type="image/png" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-light">
+    <%- include('partials/navbar') %>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Dashboard</h1>
+        
+        <% if (user.role === 'admin') { %>
+            <!-- Admin Dashboard -->
+            <div class="row dashboard-stats">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-users stat-icon mb-3"></i>
+                            <h5 class="card-title">Total Users</h5>
+                            <h2><%= stats.userCount %></h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-store stat-icon mb-3"></i>
+                            <h5 class="card-title">Merchants</h5>
+                            <h2><%= stats.merchantCount %></h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-link stat-icon mb-3"></i>
+                            <h5 class="card-title">Links</h5>
+                            <h2><%= stats.linkCount %></h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-mouse-pointer stat-icon mb-3"></i>
+                            <h5 class="card-title">Total Clicks</h5>
+                            <h2><%= stats.clickCount %></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Gateway Stats
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Payment Gateway Statistics</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <h6>Flutterwave</h6>
+                                    <ul class="list-unstyled">
+                                        <li>Total Volume: $<%= parseFloat(stats.flutterwaveVolume).toFixed(2) %></li>
+                                        <li>Successful Transactions: <%= stats.flutterwaveCount %></li>
+                                        <li>Upgrades: $<%= parseFloat(stats.flutterwaveUpgrades).toFixed(2) %></li>
+                                        <li>Withdrawals: $<%= parseFloat(stats.flutterwaveWithdrawals).toFixed(2) %></li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <h6>Umva Pay</h6>
+                                    <ul class="list-unstyled">
+                                        <li>Total Volume: $<%= parseFloat(stats.umvapayVolume).toFixed(2) %></li>
+                                        <li>Successful Transactions: <%= stats.umvapayCount %></li>
+                                        <li>Upgrades: $<%= parseFloat(stats.umvapayUpgrades).toFixed(2) %></li>
+                                        <li>Withdrawals: $<%= parseFloat(stats.umvapayWithdrawals).toFixed(2) %></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <h6>Recent Gateway Transactions</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Gateway</th>
+                                                <th>Type</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% stats.recentGatewayTransactions.forEach(transaction => { %>
+                                                <tr>
+                                                    <td><%= new Date(transaction.created_at).toLocaleDateString() %></td>
+                                                    <td>
+                                                        <span class="badge <%= 
+                                                            transaction.details.includes('Flutterwave') ? 'bg-primary' : 
+                                                            transaction.details.includes('Umva Pay') ? 'bg-success' : 
+                                                            'bg-secondary' %>">
+                                                            <%= transaction.details.includes('Flutterwave') ? 'Flutterwave' : 'Umva Pay' %>
+                                                        </span>
+                                                    </td>
+                                                    <td><%= transaction.type %></td>
+                                                    <td>$<%= parseFloat(transaction.amount).toFixed(2) %></td>
+                                                    <td>
+                                                        <span class="badge <%= 
+                                                            transaction.status === 'completed' ? 'bg-success' : 
+                                                            transaction.status === 'pending' ? 'bg-warning' : 
+                                                            'bg-danger' %>">
+                                                            <%= transaction.status %>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+            
+            <div class="card mt-4">
+                <div class="card-header">Recent Transactions</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% stats.recentTransactions.forEach(transaction => { %>
+                                <tr>
+                                    <td><%= transaction.username %></td>
+                                    <td><span class="badge bg-<%= 
+                                        transaction.type === 'deposit' ? 'success' : 
+                                        transaction.type === 'withdrawal' ? 'warning' : 
+                                        transaction.type === 'commission' ? 'info' : 
+                                        'secondary' %>"><%= transaction.type %></span></td>
+                                    <td>$<%= parseFloat(transaction.amount).toFixed(2) %></td>
+                                    <td><span class="badge bg-<%= 
+                                        transaction.status === 'completed' ? 'success' : 
+                                        transaction.status === 'pending' ? 'warning' : 
+                                        'danger' %>"><%= transaction.status %></span></td>
+                                    <td><%= new Date(transaction.created_at).toLocaleString() %></td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        <% } else if (user.role === 'merchant') { %>
+            <!-- Merchant Dashboard -->
+            <div class="row dashboard-stats">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-money-bill-wave stat-icon mb-3 text-warning"></i>
+                            <h5 class="card-title">Amount to Pay</h5>
+                            <h2>$<%= parseFloat(stats.amountToPay).toFixed(2) %></h2>
+                            <small class="text-muted">Amount due for clicks</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-check-circle stat-icon mb-3 text-success"></i>
+                            <h5 class="card-title">Total Paid</h5>
+                            <h2>$<%= parseFloat(stats.paidBalance).toFixed(2) %></h2>
+                            <small class="text-muted">All-time payments</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-link stat-icon mb-3 text-primary"></i>
+                            <h5 class="card-title">Active Links</h5>
+                            <h2><%= stats.linkCount %></h2>
+                        </div>
+                        <div class="card-footer">
+                            <a href="/merchant/links" class="btn btn-sm btn-primary">View All</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-mouse-pointer stat-icon mb-3 text-info"></i>
+                            <h5 class="card-title">Total Clicks</h5>
+                            <h2><%= stats.totalClicks %></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Instructions -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Billing Information</h5>
+                            <a href="https://wa.me/250783987223?text=hello%20admin%20of%20benixspace" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                <i class="fas fa-question-circle me-1"></i> Submit inquiry on whatsapp
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert <%= parseFloat(stats.amountToPay) > 0 ? 'alert-warning' : 'alert-success' %>">
+                                <i class="fas <%= parseFloat(stats.amountToPay) > 0 ? 'fa-exclamation-triangle' : 'fa-check-circle' %> me-2"></i>
+                                <strong>Payment Status:</strong> 
+                                <% if (parseFloat(stats.amountToPay) > 0) { %>
+                                    You currently have an outstanding balance of <strong>$<%= parseFloat(stats.amountToPay).toFixed(2) %></strong>.
+                                    Please make a payment to continue using all features.
+                                <% } else { %>
+                                    Your account is in good standing. No payment is currently due.
+                                <% } %>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-info-circle me-2"></i> About the Billing Model</h6>
+                                    <p>Our post-pay billing model allows you to pay for clicks after they occur. You're charged per click based on your link settings, and you'll only pay for actual traffic received.</p>
+                                    <p>We calculate your balance at the end of each month or when it reaches a significant amount. Contact support for payment options.</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-credit-card me-2"></i> How to Pay</h6>
+                                    <ol>
+                                        <li>Make a payment to one of our payment methods (contact admin)</li>
+                                        <li>Email your receipt to <a href="mailto:payments@benix.space">payments@benix.space</a></li>
+                                        <li>Include your merchant username and payment amount</li>
+                                        <li>Admin will update your balance within 24 hours</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Link Performance Overview -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Link Performance</h5>
+                        </div>
+                        <div class="card-body">
+                            <% if (stats.links && stats.links.length > 0) { %>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Link Title</th>
+                                                <th>Type</th>
+                                                <th>Clicks</th>
+                                                <th>Cost/Click</th>
+                                                <th>Total Cost</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% stats.links.forEach(link => { %>
+                                                <tr>
+                                                    <td><%= link.title %></td>
+                                                    <td><span class="badge bg-<%= 
+                                                        link.type === 'product' ? 'success' : 
+                                                        link.type === 'youtube' ? 'danger' : 
+                                                        'primary' %>"><%= link.type %></span></td>
+                                                    <td><%= link.clicks_count %></td>
+                                                    <td>$<%= parseFloat(link.cost_per_click).toFixed(3) %></td>
+                                                    <td>$<%= (parseFloat(link.cost_per_click) * link.clicks_count).toFixed(2) %></td>
+                                                    <td><span class="badge bg-<%= link.is_active ? 'success' : 'secondary' %>">
+                                                        <%= link.is_active ? 'Active' : 'Inactive' %>
+                                                    </span></td>
+                                                    <td>
+                                                        <a href="/merchant/links/<%= link.id %>" class="btn btn-sm btn-outline-info">
+                                                            <i class="fas fa-chart-line"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <% } else { %>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    You haven't created any links yet. <a href="/merchant/links/new">Create your first link</a> to start promoting.
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% } else { %>
+            <!-- Regular User Dashboard -->
+            <div class="row dashboard-stats">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-money-bill-wave stat-icon mb-3"></i>
+                            <h5 class="card-title">My Earnings</h5>
+                            <h2>$<%= parseFloat(user.earnings).toFixed(2) %></h2>
+                        </div>
+                        <div class="card-footer">
+                            <a href="/wallet" class="btn btn-sm btn-primary">View Wallet</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-share-alt stat-icon mb-3"></i>
+                            <h5 class="card-title">Shared Links</h5>
+                            <h2><%= stats.sharedLinkCount %></h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-mouse-pointer stat-icon mb-3"></i>
+                            <h5 class="card-title">Total Clicks</h5>
+                            <h2><%= stats.totalClicks %></h2>
+                        </div>
+                        <div class="card-footer">
+                            <% if (!user.has_lifetime_commission) { %>
+                                <a href="/upgrade-commission" class="btn btn-sm btn-warning">Upgrade Commission</a>
+                            <% } else { %>
+                                <span class="badge bg-success">Premium Member</span>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <% if (stats.sharedLinks && stats.sharedLinks.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Link</th>
+                                        <th>Clicks</th>
+                                        <th>Earnings</th>
+                                        <th>Share URL</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% stats.sharedLinks.forEach(link => { %>
+                                    <tr>
+                                        <td><%= link.title %></td>
+                                        <td><%= link.clicks %></td>
+                                        <td>$<%= parseFloat(link.earnings).toFixed(2) %></td>
+                                        <td>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control form-control-sm" 
+                                                    value="/s/<%= link.share_code %>" readonly>
+                                                <button class="btn btn-sm btn-outline-primary copy-btn" 
+                                                    data-clipboard-text="/s/<%= link.share_code %>">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary share-btn" 
+                                                data-share-url="/s/<%= link.share_code %>"
+                                                data-share-title="<%= link.title %>">
+                                                <i class="fas fa-share-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            You haven't shared any links yet. Start sharing to earn!
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        <% } %>
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+    <script>
+        // Initialize clipboard.js
+        new ClipboardJS('.copy-btn');
+
+        // Handle copy button feedback
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const originalContent = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => {
+                    button.innerHTML = originalContent;
+                }, 2000);
+            });
+        });
+
+        // Handle share buttons
+        document.querySelectorAll('.share-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const url = button.dataset.shareUrl;
+                const title = button.dataset.shareTitle;
+                if (navigator.share) {
+                    navigator.share({
+                        title: title,
+                        url: url
+                    });
+                } else {
+                    // Fallback for browsers that don't support Web Share API
+                    const dummy = document.createElement('input');
+                    document.body.appendChild(dummy);
+                    dummy.value = url;
+                    dummy.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(dummy);
+                    alert('Link copied to clipboard!');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

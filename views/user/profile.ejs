@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - BenixSpace</title>
+  <link rel="icon" href="/favicon.png" type="image/x-icon" />
+  <link rel="icon" href="/favicon.png" type="image/x-icon" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-light">
+  <%- include('../partials/navbar') %>
+
+  <div class="container mt-4">
+    <div class="row">
+      <!-- Profile Information -->
+      <div class="col-md-8">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Profile Information</h5>
+          </div>
+          <div class="card-body">
+            <% if (locals.success) { %>
+              <div class="alert alert-success alert-dismissible fade show">
+                <%= success %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            <% } %>
+            <% if (locals.error) { %>
+              <div class="alert alert-danger alert-dismissible fade show">
+                <%= error %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            <% } %>
+
+            <form action="/profile/update" method="POST" id="profileForm">
+              <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" 
+                  value="<%= user.username %>" required>
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" 
+                  value="<%= user.email %>" required>
+              </div>
+
+              <% if (user.role === 'merchant') { %>
+                <hr>
+                <h6>Business Information</h6>
+                <div class="mb-3">
+                  <label for="business_name" class="form-label">Business Name</label>
+                  <input type="text" class="form-control" id="business_name" name="business_name" 
+                    value="<%= user.business_name || '' %>">
+                </div>
+                <div class="mb-3">
+                  <label for="business_description" class="form-label">Business Description</label>
+                  <textarea class="form-control" id="business_description" name="business_description" 
+                    rows="3"><%= user.business_description || '' %></textarea>
+                </div>
+              <% } %>
+
+              <hr>
+              <h6>Change Password</h6>
+              <p class="text-muted small">Leave blank if you don't want to change your password</p>
+              
+              <div class="mb-3">
+                <label for="current_password" class="form-label">Current Password</label>
+                <input type="password" class="form-control" id="current_password" name="current_password">
+              </div>
+              <div class="mb-3">
+                <label for="new_password" class="form-label">New Password</label>
+                <input type="password" class="form-control" id="new_password" name="new_password" 
+                  minlength="8" pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$">
+                <div class="form-text">At least 8 characters with letters and numbers no special characters</div>
+              </div>
+              <div class="mb-3">
+                <label for="confirm_password" class="form-label">Confirm New Password</label>
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+              </div>
+
+              <hr>
+              <h6>Bank Account Details</h6>
+              <div class="mb-3">
+                <label for="account_name" class="form-label">Account Holder Name</label>
+                <input type="text" class="form-control" id="account_name" name="account_name" 
+                  value="<%= user.account_name || '' %>" required>
+                <div class="form-text">Enter the name exactly as it appears on your bank account</div>
+              </div>
+
+              <div class="mb-3">
+                <label for="account_number" class="form-label">Account Number</label>
+                <input type="text" class="form-control" id="account_number" name="account_number" 
+                  value="<%= user.account_number || '' %>" required
+                  pattern="[0-9]+" minlength="10" maxlength="20">
+                <div class="form-text">Enter your bank account number without spaces or special characters</div>
+              </div>
+
+              <div class="mb-3">
+                <label for="bank_code" class="form-label">Bank</label>
+                <select class="form-select" id="bank_code" name="bank_code" required>
+                  <option value="">Select your bank...</option>
+                  <option value="044" <%= user.bank_code === '044' ? 'selected' : '' %>>Access Bank</option>
+                  <option value="057" <%= user.bank_code === '057' ? 'selected' : '' %>>Equity Bank</option>
+                  <option value="033" <%= user.bank_code === '033' ? 'selected' : '' %>>NCBA Bank</option>
+                  <option value="058" <%= user.bank_code === '058' ? 'selected' : '' %>>GTBank</option>
+                  <option value="221" <%= user.bank_code === '221' ? 'selected' : '' %>>Bank of Kigali</option>
+                  <option value="068" <%= user.bank_code === '068' ? 'selected' : '' %>>MTN Momo</option>
+                  <option value="232" <%= user.bank_code === '232' ? 'selected' : '' %>>Airtel Money</option>
+                  <option value="215" <%= user.bank_code === '215' ? 'selected' : '' %>>Other</option>
+                </select>
+                <div class="form-text">Select your bank from the list</div>
+              </div>
+
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                These bank details will be used for processing your withdrawal requests through Flutterwave or Umva Pay. Please ensure they are accurate.
+              </div>
+
+              <button type="submit" class="btn btn-primary" id="saveBtn">
+                <i class="fas fa-save me-2"></i>Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Summary -->
+      <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Account Summary</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="fw-bold">Role</label>
+              <p class="mb-0">
+                <span class="badge bg-<%= 
+                  user.role === 'admin' ? 'danger' :
+                  user.role === 'merchant' ? 'success' :
+                  'info' %>">
+                  <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %>
+                </span>
+              </p>
+            </div>
+            <div class="mb-3">
+              <label class="fw-bold">Member Since</label>
+              <p class="mb-0"><%= new Date(user.created_at).toLocaleDateString() %></p>
+            </div>
+            <% if (user.role === 'user') { %>
+              <div class="mb-3">
+                <label class="fw-bold">Commission Status</label>
+                <p class="mb-0">
+                  <% if (user.has_lifetime_commission) { %>
+                    <span class="badge bg-success">Premium (2x Commission)</span>
+                  <% } else { %>
+                    <span class="badge bg-secondary">Standard</span>
+                    <a href="/upgrade-commission" class="btn btn-warning btn-sm ms-2">Upgrade</a>
+                  <% } %>
+                </p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <% if (user.role === 'merchant') { %>
+          <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+              <h5 class="mb-0">Merchant Stats</h5>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="fw-bold">Total Links</label>
+                <p class="mb-0"><%= locals.stats ? stats.totalLinks : 0 %></p>
+              </div>
+              <div class="mb-3">
+                <label class="fw-bold">Total Clicks</label>
+                <p class="mb-0"><%= locals.stats ? stats.totalClicks : 0 %></p>
+              </div>
+              
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+      const newPassword = document.getElementById('new_password').value;
+      const confirmPassword = document.getElementById('confirm_password').value;
+      
+      if (newPassword || confirmPassword) {
+        if (newPassword !== confirmPassword) {
+          e.preventDefault();
+          alert('New passwords do not match');
+          return;
+        }
+        
+        if (!document.getElementById('current_password').value) {
+          e.preventDefault();
+          alert('Please enter your current password to change it');
+          return;
+        }
+      }
+      
+      const accountNumber = document.getElementById('account_number').value;
+      if (accountNumber && !/^\d{10,20}$/.test(accountNumber)) {
+        e.preventDefault();
+        alert('Please enter a valid account number (10-20 digits)');
+        return;
+      }
+    });
+  </script>
+</body>
+</html>

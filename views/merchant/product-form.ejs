@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../partials/navbar') %>
+    <link rel="icon" href="/static/img/favicon.png" type="image/png">
+    <title><%= product ? 'Edit' : 'Add' %> Product - BenixSpace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0"><%= product ? 'Edit' : 'Add New' %> Product</h4>
+                    </div>
+                    <div class="card-body">
+                        <% if (typeof error !== 'undefined' && error) { %>
+                            <div class="alert alert-danger"><%= error %></div>
+                        <% } %>
+                        
+                        <form action="<%= product ? `/merchant/products/${product.id}/edit` : '/merchant/products/create' %>" 
+                              method="POST" 
+                              enctype="multipart/form-data">
+                            
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Product Name</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="<%= product ? product.name : '' %>" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3" required><%= product ? product.description : '' %></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="price" class="form-label">Price ($)</label>
+                                    <input type="number" class="form-control" id="price" name="price" 
+                                           step="0.01" min="0" value="<%= product ? product.price : '0.00' %>" required>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="stock" class="form-label">Stock</label>
+                                    <input type="number" class="form-control" id="stock" name="stock" 
+                                           min="0" value="<%= product ? product.stock : '0' %>" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="category" class="form-label">Category</label>
+                                    <input type="text" class="form-control" id="category" name="category" 
+                                           value="<%= product ? product.category : '' %>">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="commission_rate" class="form-label">Commission Rate (%)</label>
+                                    <input type="number" class="form-control" id="commission_rate" name="commission_rate" 
+                                           step="0.1" min="0" max="100" 
+                                           value="<%= product ? product.commission_rate : defaultCommissionRate %>" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                           <%= product && product.is_active ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="is_active">Active (visible to users)</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="image" class="form-label">Product Image</label>
+                                <input type="file" class="form-control" id="image" name="image" 
+                                       accept="image/jpeg,image/png,image/gif">
+                                <% if (product && product.image_url) { %>
+                                    <div class="mt-2">
+                                        <img src="<%= product.image_url %>" alt="Current product image" 
+                                             style="max-height: 100px;">
+                                    </div>
+                                <% } %>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <%= product ? 'Update' : 'Create' %> Product
+                                </button>
+                                <a href="/merchant/products" class="btn btn-outline-secondary">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

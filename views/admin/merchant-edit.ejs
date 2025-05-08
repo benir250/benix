@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Merchant - BenixSpace</title>
+  <link rel="icon" href="/static/img/favicon.png" type="image/png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-light">
+  <%- include('../partials/navbar') %>
+
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-md-8 mx-auto">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Edit Merchant</h4>
+          </div>
+          <div class="card-body">
+            <% if (success) { %>
+              <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <%= success %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            <% } %>
+            
+            <% if (error) { %>
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <%= error %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            <% } %>
+
+            <form action="/admin/merchants/<%= merchant.id %>/update" method="POST">
+              <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" value="<%= merchant.username %>" required>
+              </div>
+              
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="<%= merchant.email %>" required>
+              </div>
+              
+              <div class="mb-3">
+                <label for="business_name" class="form-label">Business Name</label>
+                <input type="text" class="form-control" id="business_name" name="business_name" value="<%= merchant.business_name || '' %>">
+              </div>
+              
+              <div class="mb-3">
+                <label for="business_description" class="form-label">Business Description</label>
+                <textarea class="form-control" id="business_description" name="business_description" rows="3"><%= merchant.business_description || '' %></textarea>
+              </div>
+              
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="is_verified" name="is_verified" <%= merchant.is_verified ? 'checked' : '' %>>
+                <label class="form-check-label" for="is_verified">
+                  Verified Merchant
+                </label>
+              </div>
+              
+              <div class="d-flex justify-content-between">
+                <a href="/admin/merchants" class="btn btn-secondary">
+                  <i class="fas fa-arrow-left me-1"></i> Back to Merchants
+                </a>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save me-1"></i> Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        
+        <div class="card shadow-sm mt-4">
+          <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Danger Zone</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h5>Reset Password</h5>
+                <p class="text-muted mb-0">Generate a new random password for this merchant</p>
+              </div>
+              <button class="btn btn-outline-warning" onclick="resetPassword(<%= merchant.id %>)">
+                Reset Password
+              </button>
+            </div>
+            
+            <hr>
+            
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h5>Delete Merchant</h5>
+                <p class="text-muted mb-0">This action cannot be undone</p>
+              </div>
+              <button class="btn btn-outline-danger" onclick="deleteMerchant(<%= merchant.id %>)">
+                Delete Merchant
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function resetPassword(id) {
+      if (confirm('Are you sure you want to reset this merchant\'s password? They will receive an email with the new password.')) {
+        fetch(`/admin/merchants/${id}/reset-password`, {
+          method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Password reset successfully. ' + (data.newPassword ? `New password: ${data.newPassword}` : 'An email has been sent to the merchant.'));
+          } else {
+            alert('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while processing your request');
+        });
+      }
+    }
+    
+    function deleteMerchant(id) {
+      if (confirm('Are you sure you want to delete this merchant? This action cannot be undone.')) {
+        fetch(`/admin/merchants/${id}/delete`, {
+          method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Merchant deleted successfully');
+            window.location.href = '/admin/merchants';
+          } else {
+            alert('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while processing your request');
+        });
+      }
+    }
+  </script>
+</body>
+</html>

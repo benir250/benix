@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= product.title %> - BenixSpace</title>
+    <link rel="icon" href="/static/img/favicon.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .product-image {
+            max-height: 400px;
+            object-fit: contain;
+            width: 100%;
+        }
+        .merchant-info {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .price-tag {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .referrer-badge {
+            background-color: #e1f5fe;
+            color: #0288d1;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .product-details-card {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .share-btn {
+            background-color: #27ae60;
+            border-color: #27ae60;
+        }
+        .share-btn:hover {
+            background-color: #219955;
+            border-color: #219955;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <div class="container py-5">
+        <div class="mb-4">
+            <a href="/user/products" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Products
+            </a>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card product-details-card mb-4">
+                    <div class="card-body p-4">
+                        <h1 class="card-title mb-4"><%= product.title %></h1>
+                        
+                        <% if (product.image_url) { %>
+                            <div class="text-center mb-4">
+                                <img src="<%= product.image_url %>" alt="<%= product.title %>" class="img-fluid product-image rounded">
+                            </div>
+                        <% } else { %>
+                            <div class="text-center mb-4 bg-light p-5 rounded">
+                                <i class="fas fa-image fa-4x text-muted"></i>
+                                <p class="mt-3 text-muted">No image available</p>
+                            </div>
+                        <% } %>
+                        
+                        <div class="mb-4">
+                            <h4>Description</h4>
+                            <p class="text-muted"><%= product.description || 'No description available' %></p>
+                        </div>
+                        
+                        <% if (referrerUsername) { %>
+                            <div class="mb-3">
+                                <span class="referrer-badge">
+                                    <i class="fas fa-user-friends me-1"></i> Shared by <%= referrerUsername %>
+                                </span>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-5">
+                <div class="card product-details-card mb-4">
+                    <div class="card-body p-4">
+                        <div class="price-tag mb-4">$<%= parseFloat(product.price).toFixed(2) %></div>
+                        
+                        <button id="addToCartBtn" class="btn btn-primary btn-lg w-100 mb-3">
+                            <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                        </button>
+                        
+                        <a href="/links/<%= product.id %>/share" class="btn share-btn btn-success w-100 mb-4">
+                            <i class="fas fa-share-alt me-2"></i> Share & Earn
+                        </a>
+
+                        <% if (merchant) { %>
+                            <div class="merchant-info">
+                                <h5 class="mb-3">Sold by</h5>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                        <%= (merchant.business_name || merchant.username).charAt(0).toUpperCase() %>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 fw-bold"><%= merchant.business_name || merchant.username %></p>
+                                        <small class="text-muted">Merchant</small>
+                                    </div>
+                                </div>
+                                <p class="text-muted small mb-0">
+                                    <%= merchant.business_description || 'Trusted merchant on BenixSpace' %>
+                                </p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addToCartBtn = document.getElementById('addToCartBtn');
+            
+            if (addToCartBtn) {
+                addToCartBtn.addEventListener('click', async function() {
+                    try {
+                        const response = await fetch('/api/cart/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ productId: <%= product.id %>, quantity: 1 })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (response.ok) {
+                            alert('Product added to cart!');
+                            // Refresh the page to update cart count
+                            window.location.reload();
+                        } else {
+                            alert(result.message || 'Failed to add product to cart');
+                        }
+                    } catch (err) {
+                        console.error('Error adding to cart:', err);
+                        alert('Something went wrong. Please try again.');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
